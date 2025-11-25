@@ -22,15 +22,21 @@ const formatRupiah = (value) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 }
 
-// --- 1. NAVBAR COMPONENT (Update: Menu Shop Aktif) ---
-const Navbar = ({ onSearch }) => {
-  const [keyword, setKeyword] = useState('')
+// --- 1. NAVBAR COMPONENT (Updated: Terima Keyword dari App) ---
+const Navbar = ({ keyword, setKeyword, onSearch }) => {
   const cartCount = 0 
   const wishCount = 0
 
   const handleSearch = (e) => {
     e.preventDefault()
     onSearch(keyword)
+  }
+
+  const handleChange = (e) => {
+    setKeyword(e.target.value)
+    if (e.target.value === '') {
+        onSearch('') 
+    }
   }
 
   return (
@@ -72,7 +78,6 @@ const Navbar = ({ onSearch }) => {
 
           <div className="hidden lg:flex gap-6 text-sm font-bold text-[#737373]">
             <a href="#" className="hover:text-[#23856D]">Home</a>
-            {/* --- REVISI: Shop Jadi Aktif (#252B42) --- */}
             <a href="#" className="text-[#252B42] font-bold flex items-center gap-1">
                Shop <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"></path></svg>
             </a>
@@ -94,7 +99,7 @@ const Navbar = ({ onSearch }) => {
                  placeholder="Search book..." 
                  className="pl-3 pr-8 py-1 border rounded-full text-gray-600 text-xs focus:outline-none focus:border-[#23A6F0] w-full"
                  value={keyword}
-                 onChange={(e) => setKeyword(e.target.value)}
+                 onChange={handleChange}
                />
                <button type="submit" className="absolute right-2 text-gray-400 hover:text-[#23856D]">
                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -118,9 +123,14 @@ const Navbar = ({ onSearch }) => {
   )
 }
 
-// --- 2. HERO SECTION (BREADCRUMB LURUS DENGAN GAMBAR) ---
+// --- 2. HERO SECTION ---
 const HeroSection = ({ books }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
+
+  // Reset slider jika data berubah (misal user klik buku baru)
+  useEffect(() => {
+    if(books.length > 0) setCurrentIndex(0)
+  }, [books])
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % books.length)
@@ -150,13 +160,8 @@ const HeroSection = ({ books }) => {
     <section className="bg-white py-8 px-6 relative overflow-hidden group">
       <div className="max-w-[1128px] mx-auto flex flex-col md:flex-row items-start gap-8">
         
-        {/* --- KOLOM KIRI: GAMBAR & BREADCRUMB --- */}
         <div className="w-full md:w-5/12 flex flex-col items-center">
-            
-            {/* WRAPPER AGAR BREADCRUMB LURUS DENGAN GAMBAR */}
-            <div className="relative w-64 md:w-80"> {/* Lebar dikunci sama dengan lebar gambar */}
-                
-                {/* BREADCRUMB (Di sini agar sejajar kiri gambar) */}
+            <div className="relative w-64 md:w-80"> 
                 <div className="flex items-center gap-3 mb-10">
                    <a href="#" className="text-[#252B42] font-bold text-sm hover:underline">Home</a>
                    <svg className="w-2 h-3 text-[#BDBDBD]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,12 +170,9 @@ const HeroSection = ({ books }) => {
                    <span className="text-[#737373] font-bold text-sm">Shop</span>
                 </div>
 
-                {/* AREA GAMBAR */}
                 <div className="relative w-full">
-                    {/* Background Circle */}
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gray-100 rounded-full -z-10"></div>
                     
-                    {/* PREV BUTTON (Di luar gambar dikit) */}
                     <button onClick={prevSlide} className="absolute -left-12 top-1/2 transform -translate-y-1/2 z-20 p-2 text-gray-300 hover:text-gray-900 transition hidden md:block">
                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
                     </button>
@@ -182,7 +184,6 @@ const HeroSection = ({ books }) => {
                       className="w-full shadow-2xl rounded-lg transform transition duration-500"
                     />
 
-                    {/* NEXT BUTTON */}
                     <button onClick={nextSlide} className="absolute -right-12 top-1/2 transform -translate-y-1/2 z-20 p-2 text-gray-300 hover:text-gray-900 transition hidden md:block">
                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                     </button>
@@ -190,8 +191,7 @@ const HeroSection = ({ books }) => {
             </div>
         </div>
 
-        {/* --- KOLOM KANAN: DETAIL TEKS --- */}
-        <div className="w-full md:w-7/12 text-left space-y-6 pt-16"> {/* pt-16 biar turun sejajar gambar, bukan sejajar breadcrumb */}
+        <div className="w-full md:w-7/12 text-left space-y-6 pt-16"> 
           <div className="flex flex-wrap gap-3 text-sm font-bold tracking-wide text-[#737373]">
              <span className="bg-[#F6F6F6] px-4 py-2 rounded-full text-[#737373]">
                 {book.category?.name || 'General'}
@@ -220,35 +220,26 @@ const HeroSection = ({ books }) => {
             {book.summary || "Deskripsi buku belum tersedia."}
           </p>
 
-          <div className="space-y-1 text-sm text-[#737373] pt-2 border-t border-gray-200 mt-4 pt-4"> {/* Garis pemisah tipis */}
+          <div className="space-y-1 text-sm text-[#737373] pt-2 border-t border-gray-200 mt-4 pt-4"> 
              {book.details?.total_pages && <p><span className="text-sm font-bold text-[#737373]">Pages:</span> {book.details.total_pages}</p>}
              {book.publisher && <p><span className="text-sm font-bold text-[#737373]">Publisher:</span> {book.publisher}</p>}
              {book.details?.isbn && <p><span className="text-sm font-bold text-[#737373]">ISBN:</span> {book.details.isbn}</p>}
              {book.details?.published_date && <p><span className="text-sm font-bold text-[#737373]">Published:</span> {book.details.published_date}</p>}
           </div>
 
-          <div className="flex gap-3 pt-1">
-            <button className="px-4 py-2 bg-[#007AFF] hover:bg-blue-600 text-white font-bold rounded-[10px] shadow-lg transition flex items-center gap-2 uppercase text-sm tracking-wider">
+          <div className="flex gap-3 pt-4">
+            <button className="px-8 py-3 bg-[#007AFF] hover:bg-blue-600 text-white font-bold rounded-[5px] shadow-lg transition flex items-center gap-2 uppercase text-sm tracking-wider">
               BUY NOW
             </button>
-          <div className="flex gap-3 pt-1">
-            
-            
-            {/* Tombol Love (Background #DBECFF) */}
             <button className="w-10 h-10 rounded-full flex items-center justify-center bg-[#DBECFF] text-[#252B42] hover:bg-blue-200 transition">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
             </button>
-            
-            {/* Tombol Cart (Background #DBECFF) */}
             <button className="w-10 h-10 rounded-full flex items-center justify-center bg-[#DBECFF] text-[#252B42] hover:bg-blue-200 transition">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
             </button>
-            
-            {/* Tombol Mata (Background #DBECFF) */}
             <button className="w-10 h-10 rounded-full flex items-center justify-center bg-[#DBECFF] text-[#252B42] hover:bg-blue-200 transition">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
             </button>
-          </div>
           </div>
         </div>
       </div>
@@ -257,187 +248,216 @@ const HeroSection = ({ books }) => {
 }
 
 // --- 3. HORIZONTAL CARD (READING LIST) ---
-const ReadingListCard = ({ item }) => {
-  const priceNum = parsePrice(item.details?.price || item.price);
-  const fakeOriginalPrice = priceNum * 1.2;
-  const displayPrice = priceNum ? formatRupiah(priceNum) : formatPrice(item.details?.price || item.price);
-  
-  return (
-    <div className="bg-white rounded border border-gray-100 hover:shadow-lg transition group cursor-pointer flex flex-col h-full">
-      <div className="bg-gray-100 h-60 flex items-center justify-center p-4 relative overflow-hidden">
-        <img 
-          src={item.cover_image} 
-          alt={item.title}
-          onError={(e) => {e.target.src='https://via.placeholder.com/300x300?text=Book+Cover'}}
-          className="h-full object-contain shadow-md transition transform group-hover:scale-105"
-        />
-        <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">New</div>
-      </div>
-      <div className="p-4 text-left flex flex-col flex-grow">
-        <div className="flex justify-between items-start mb-2">
-            <p className="text-[#23A6F0] text-xs font-bold uppercase truncate w-3/4">{item.category?.name || 'General'}</p>
-            <div className="bg-[#23856D] text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                <span>★</span> 4.8
-            </div>
-        </div>
-        <h3 className="font-bold text-[#252B42] text-base mb-1 line-clamp-2 leading-tight flex-grow">{item.title}</h3>
-        <p className="text-xs text-[#737373] mb-3">{item.author?.name || 'Unknown'}</p>
-        <div className="flex items-center gap-2 mt-auto">
-          {priceNum > 0 && <span className="text-[#BDBDBD] font-bold line-through text-xs">{formatRupiah(fakeOriginalPrice)}</span>}
-          <span className="text-[#23856D] font-bold text-sm">{displayPrice}</span>
-        </div>
-      </div>
-    </div>
-  )
+const ReadingListCard = ({ item, onClick }) => {
+  const priceNum = parsePrice(item.details?.price || item.price);
+  const fakeOriginalPrice = priceNum * 1.2;
+  const displayPrice = priceNum ? formatRupiah(priceNum) : formatPrice(item.details?.price || item.price);
+  
+  return (
+    <div onClick={() => onClick(item)} className="bg-white rounded border border-gray-100 hover:shadow-lg transition group cursor-pointer flex flex-col h-full">
+      <div className="bg-gray-100 h-60 flex items-center justify-center p-4 relative overflow-hidden">
+        <img 
+          src={item.cover_image} 
+          alt={item.title}
+          onError={(e) => {e.target.src='https://via.placeholder.com/300x300?text=Book+Cover'}}
+          className="h-full object-contain shadow-md transition transform group-hover:scale-105"
+        />
+        <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">New</div>
+      </div>
+      <div className="p-4 text-left flex flex-col flex-grow">
+        <div className="flex justify-between items-start mb-2">
+            <p className="text-[#23A6F0] text-xs font-bold uppercase truncate w-3/4">{item.category?.name || 'General'}</p>
+            <div className="bg-[#23856D] text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                <span>★</span> 4.8
+            </div>
+        </div>
+        <h3 className="font-bold text-[#252B42] text-base mb-1 line-clamp-2 leading-tight flex-grow">{item.title}</h3>
+        <p className="text-xs text-[#737373] mb-3">{item.author?.name || 'Unknown'}</p>
+        <div className="flex items-center gap-2 mt-auto">
+          {priceNum > 0 && <span className="text-[#BDBDBD] font-bold line-through text-xs">{formatRupiah(fakeOriginalPrice)}</span>}
+          <span className="text-[#23856D] font-bold text-sm">{displayPrice}</span>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // --- 4. MAIN GRID CARD (BOOKS FOR YOU) ---
-const ProductCard = ({ item }) => {
-  const priceNum = parsePrice(item.details?.price || item.price);
-  const fakeOriginalPrice = priceNum * 1.2;
-  const displayPrice = priceNum ? formatRupiah(priceNum) : formatPrice(item.details?.price || item.price);
+const ProductCard = ({ item, onClick }) => {
+  const priceNum = parsePrice(item.details?.price || item.price);
+  const fakeOriginalPrice = priceNum * 1.2;
+  const displayPrice = priceNum ? formatRupiah(priceNum) : formatPrice(item.details?.price || item.price);
 
-  return (
-    <div className="bg-white group cursor-pointer flex flex-col items-center">
-      <div className="relative mb-4 overflow-hidden h-80 w-full flex items-center justify-center bg-gray-50 rounded">
-        <img 
-          src={item.cover_image} 
-          alt={item.title}
-          onError={(e) => {e.target.src='https://via.placeholder.com/300x300?text=Book+Cover'}} 
-          className="h-64 object-contain shadow-md transition transform group-hover:scale-105"
-        />
-      </div>
-      <div className="text-center px-2 w-full">
-        <p className="text-xs text-gray-400 font-bold uppercase mb-2">{item.category?.name || 'Book'}</p>
-        <h3 className="text-base font-bold text-[#252B42] line-clamp-1 mb-2">{item.title}</h3>
-        <p className="text-xs text-[#737373] mb-2">{item.author?.name || 'Penulis'}</p>
-        <div className="flex justify-center gap-3">
-           {priceNum > 0 && (
-              <span className="text-[#BDBDBD] font-bold line-through text-sm">{formatRupiah(fakeOriginalPrice)}</span>
-           )}
-           <span className="text-[#23856D] font-bold text-base">{displayPrice}</span>
-        </div>
-      </div>
-    </div>
-  )
+  return (
+    <div onClick={() => onClick(item)} className="bg-white group cursor-pointer flex flex-col items-center">
+      <div className="relative mb-4 overflow-hidden h-80 w-full flex items-center justify-center bg-gray-50 rounded">
+        <img 
+          src={item.cover_image} 
+          alt={item.title}
+          onError={(e) => {e.target.src='https://via.placeholder.com/300x300?text=Book+Cover'}} 
+          className="h-64 object-contain shadow-md transition transform group-hover:scale-105"
+        />
+      </div>
+      <div className="text-center px-2 w-full">
+        <p className="text-xs text-gray-400 font-bold uppercase mb-2">{item.category?.name || 'Book'}</p>
+        <h3 className="text-base font-bold text-[#252B42] line-clamp-1 mb-2">{item.title}</h3>
+        <p className="text-xs text-[#737373] mb-2">{item.author?.name || 'Penulis'}</p>
+        <div className="flex justify-center gap-3">
+           {priceNum > 0 && (
+              <span className="text-[#BDBDBD] font-bold line-through text-sm">{formatRupiah(fakeOriginalPrice)}</span>
+           )}
+           <span className="text-[#23856D] font-bold text-base">{displayPrice}</span>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // --- MAIN APP ---
 function App() {
-  const [heroBooks, setHeroBooks] = useState([]) // Data Hero Slider
-  const [books, setBooks] = useState([]) 
-  const [readingList, setReadingList] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [errorMsg, setErrorMsg] = useState(null)
+  const [heroBooks, setHeroBooks] = useState([]) // Data Hero Slider
+  const [books, setBooks] = useState([]) 
+  const [readingList, setReadingList] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [errorMsg, setErrorMsg] = useState(null)
+  const [isSearching, setIsSearching] = useState(false)
+  // STATE BARU: Untuk menyimpan keyword search
+  const [keyword, setKeyword] = useState('')
 
-  const BASE_URL = 'https://bukuacak-9bdcb4ef2605.herokuapp.com/api/v1'
+  const BASE_URL = 'https://bukuacak-9bdcb4ef2605.herokuapp.com/api/v1'
 
-  const getRandomPage = () => Math.floor(Math.random() * 10) + 1;
+  const getRandomPage = () => Math.floor(Math.random() * 10) + 1;
 
-  const fetchBooks = async (keyword = '') => {
-    setLoading(true)
-    setErrorMsg(null)
-    try {
-      let url = `${BASE_URL}/book?limit=8&page=${getRandomPage()}`
-      if (keyword) url = `${BASE_URL}/book?limit=8&keyword=${keyword}`
-      
-      const res = await axios.get(url)
-      const data = res.data.books || res.data.data || []
-      
-      if (Array.isArray(data)) setBooks(data)
-      else setBooks([])
-    } catch (err) {
-      console.error(err)
-      setErrorMsg("Gagal memuat data.")
-      setBooks([])
-    } finally {
-      setLoading(false)
-    }
+  // FUNGSI KLIK BUKU (RESET SEARCH)
+  const handleBookClick = (clickedBook) => {
+    // 1. Reset Keyword
+    setKeyword('')
+    // 2. Matikan mode searching
+    setIsSearching(false)
+    // 3. Update Hero dengan buku yg diklik
+    setHeroBooks([clickedBook, ...heroBooks.filter(b => b._id !== clickedBook._id)])
+    // 4. Kembalikan list bawah ke default (karena search dimatikan)
+    fetchBooks('') 
+    // 5. Scroll ke atas
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  useEffect(() => {
-    const fetchInitData = async () => {
-        try {
-            // 1. Hero Books (Fetch 5 buku dari page random biar acak)
-            const randomHeroPage = Math.floor(Math.random() * 10) + 1;
-            const heroRes = await axios.get(`${BASE_URL}/book?limit=5&page=${randomHeroPage}`)
-            const heroData = heroRes.data.books || heroRes.data.data || []
-            if(Array.isArray(heroData)) setHeroBooks(heroData)
+  const fetchBooks = async (searchKeyword = '') => {
+    setLoading(true)
+    setErrorMsg(null)
+    
+    // Update state searching berdasarkan keyword
+    setIsSearching(!!searchKeyword) 
 
-            // 2. Reading List
-            const randomReadingPage = Math.floor(Math.random() * 5) + 1; 
-            const readingRes = await axios.get(`${BASE_URL}/book?limit=4&page=${randomReadingPage}`)
-            const readingData = readingRes.data.data || []
-            if(Array.isArray(readingData)) setReadingList(readingData)
+    try {
+      let url = `${BASE_URL}/book?limit=8&page=${getRandomPage()}`
+      if (searchKeyword) {
+        url = `${BASE_URL}/book?limit=8&keyword=${searchKeyword}`
+      }
+      
+      const res = await axios.get(url)
+      const data = res.data.books || res.data.data || []
+      
+      if (Array.isArray(data)) setBooks(data)
+      else setBooks([])
+    } catch (err) {
+      console.error(err)
+      setErrorMsg("Gagal memuat data.")
+      setBooks([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
-            // 3. Books For You
-            fetchBooks()
-        } catch (e) { console.error(e) }
-    }
-    fetchInitData()
-  }, [])
+  useEffect(() => {
+    const fetchInitData = async () => {
+        try {
+            // 1. Hero Books 
+            const randomHeroPage = Math.floor(Math.random() * 10) + 1;
+            const heroRes = await axios.get(`${BASE_URL}/book?limit=5&page=${randomHeroPage}`)
+            const heroData = heroRes.data.books || heroRes.data.data || []
+            if(Array.isArray(heroData)) setHeroBooks(heroData)
 
-  return (
-    <div className="min-h-screen bg-white font-sans text-gray-800">
-      <Navbar onSearch={(kw) => fetchBooks(kw)} />
-      
-      {/* Kirim array buku ke Hero agar bisa digeser */}
-      <HeroSection books={heroBooks} />
+            // 2. Reading List
+            const randomReadingPage = Math.floor(Math.random() * 5) + 1; 
+            const readingRes = await axios.get(`${BASE_URL}/book?limit=4&page=${randomReadingPage}`)
+            const readingData = readingRes.data.data || []
+            if(Array.isArray(readingData)) setReadingList(readingData)
 
-      {/* READING LIST */}
-      <section className="max-w-[1128px] mx-auto py-12 px-6">
-         <div className="text-left mb-8">
-  <h2 className="text-[#252B42] font-sans font-semibold text-[32px] leading-[40px] tracking-[-0.04em]">
-  Your Reading List
-</h2>
-</div>
+            // 3. Books For You
+            fetchBooks()
+        } catch (e) { console.error(e) }
+    }
+    fetchInitData()
+  }, [])
 
-         
-         {readingList.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {readingList.map((book) => (
-                  <ReadingListCard key={book._id} item={book} />
-              ))}
-            </div>
-         ) : (
-            <div className="bg-gray-50 p-8 rounded text-center text-gray-400 border border-dashed border-gray-200">
-               Belum ada buku di Reading List.
-            </div>
-         )}
-      </section>
+  return (
+    <div className="min-h-screen bg-white font-sans text-gray-800">
+      {/* Pass keyword & setKeyword ke Navbar biar sinkron */}
+      <Navbar keyword={keyword} setKeyword={setKeyword} onSearch={fetchBooks} />
+      
+      {/* LOGIKA: Sembunyikan Hero kalau lagi searching */}
+      {!isSearching && <HeroSection books={heroBooks} />}
 
-      {/* BOOKS FOR YOU */}
-      <section className="max-w-[1128px] mx-auto py-16 px-6 border-t border-gray-100">
-         <div className="text-left mb-10">
-            <h2 className="text-[#252B42] font-sans font-semibold text-[32px] leading-[40px] tracking-[-0.04em] mb-2">
-  Books For You
-</h2>
-         </div>
+      {/* LOGIKA: Sembunyikan Reading List kalau lagi searching */}
+      {!isSearching && (
+        <section className="max-w-[1128px] mx-auto py-12 px-6">
+           <div className="text-left mb-8">
+              <h2 className="text-[#252B42] font-sans font-semibold text-[32px] leading-[40px] tracking-[-0.04em]">
+                Your Reading List
+              </h2>
+           </div>
+           
+           {readingList.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {readingList.map((book) => (
+                    <ReadingListCard key={book._id} item={book} onClick={handleBookClick} />
+                ))}
+              </div>
+           ) : (
+              <div className="bg-gray-50 p-8 rounded text-center text-gray-400 border border-dashed border-gray-200">
+                 Belum ada buku di Reading List.
+              </div>
+           )}
+        </section>
+      )}
 
-         {loading ? (
-             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 animate-pulse">
-                {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="h-80 bg-gray-100 rounded"></div>)}
-             </div>
-         ) : errorMsg ? (
-             <div className="text-center text-gray-500 py-10">{errorMsg}</div>
-         ) : books.length > 0 ? (
-             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-12">
-                {books.map((book) => (
-                    <ProductCard key={book._id} item={book} />
-                ))}
-             </div>
-         ) : (
-            <p className="text-gray-500 text-center col-span-full">Tidak ada buku ditemukan.</p>
-         )}
-      </section>
+      {/* BOOKS FOR YOU (atau Search Result) */}
+      <section className="max-w-[1128px] mx-auto py-16 px-6 border-t border-gray-100">
+         <div className="text-left mb-10">
+            <p className="text-[#737373] text-sm font-medium mb-2">
+                {isSearching ? 'Search Result' : 'Featured Products'}
+            </p>
+            <h2 className="text-[#252B42] font-sans font-semibold text-[32px] leading-[40px] tracking-[-0.04em] mb-2">
+                {isSearching ? 'HASIL PENCARIAN' : 'Books For You'}
+            </h2>
+            {!isSearching && <p className="text-[#737373] text-sm">Problems trying to resolve the conflict between</p>}
+         </div>
 
-      <footer className="bg-gray-50 py-10 mt-10 border-t">
-        <div className="max-w-[1128px] mx-auto flex flex-col md:flex-row justify-between items-center px-6 text-[#737373] text-sm font-bold gap-4">
-           <p>Bookstar Project 2025 by Nindya</p>
-        </div>
-      </footer>
-    </div>
-  )
+         {loading ? (
+             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 animate-pulse">
+                {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="h-80 bg-gray-100 rounded"></div>)}
+             </div>
+         ) : errorMsg ? (
+             <div className="text-center text-gray-500 py-10">{errorMsg}</div>
+         ) : books.length > 0 ? (
+             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-12">
+                {books.map((book) => (
+                    <ProductCard key={book._id} item={book} onClick={handleBookClick} />
+                ))}
+             </div>
+         ) : (
+            <p className="text-gray-500 text-center col-span-full">Tidak ada buku ditemukan.</p>
+         )}
+      </section>
+
+      <footer className="bg-gray-50 py-10 mt-10 border-t">
+        <div className="max-w-[1128px] mx-auto flex flex-col md:flex-row justify-between items-center px-6 text-[#737373] text-sm font-bold gap-4">
+           <p>Bookstar Project 2025 by Nindya</p>
+        </div>
+      </footer>
+    </div>
+  )
 }
 
 export default App
