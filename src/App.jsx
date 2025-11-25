@@ -426,12 +426,10 @@ function App() {
       <section className="max-w-[1128px] mx-auto py-16 px-6 border-t border-gray-100">
          <div className="text-left mb-10">
             <p className="text-[#737373] text-sm font-medium mb-2">
-                {isSearching ? 'Search Result' : 'Featured Products'}
             </p>
             <h2 className="text-[#252B42] font-sans font-semibold text-[32px] leading-[40px] tracking-[-0.04em] mb-2">
-                {isSearching ? 'HASIL PENCARIAN' : 'Books For You'}
+                
             </h2>
-            {!isSearching && <p className="text-[#737373] text-sm">Problems trying to resolve the conflict between</p>}
          </div>
 
          {loading ? (
