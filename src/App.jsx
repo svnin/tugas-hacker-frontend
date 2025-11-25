@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 
 // --- UTILS ---
@@ -22,8 +22,12 @@ const formatRupiah = (value) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 }
 
-// --- 1. NAVBAR COMPONENT (Updated: Terima Keyword dari App) ---
-const Navbar = ({ keyword, setKeyword, onSearch }) => {
+// --- 1. NAVBAR COMPONENT (UPDATE: SEARCH ICON MODE) ---
+const Navbar = ({ onSearch }) => {
+  const [keyword, setKeyword] = useState('')
+  const [showSearchInput, setShowSearchInput] = useState(false) // State untuk toggle search
+  const inputRef = useRef(null) // Biar bisa auto-focus pas diklik
+
   const cartCount = 0 
   const wishCount = 0
 
@@ -38,6 +42,13 @@ const Navbar = ({ keyword, setKeyword, onSearch }) => {
         onSearch('') 
     }
   }
+
+  // Auto focus saat ikon search diklik
+  useEffect(() => {
+    if (showSearchInput && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [showSearchInput])
 
   return (
     <div className="w-full font-sans sticky top-0 z-50 bg-white shadow-sm">
@@ -87,26 +98,41 @@ const Navbar = ({ keyword, setKeyword, onSearch }) => {
             <a href="#" className="hover:text-[#23856D]">Pages</a>
           </div>
 
-          <div className="flex items-center gap-4 text-[#23A6F0] font-bold text-sm ml-auto lg:ml-0 w-full lg:w-auto">
+          <div className="flex items-center gap-6 text-[#23A6F0] font-bold text-sm ml-auto lg:ml-0 w-full lg:w-auto justify-end">
             <div className="hidden md:flex items-center gap-2 cursor-pointer hover:opacity-80 whitespace-nowrap">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
               <span>Login / Register</span>
             </div>
             
-            <form onSubmit={handleSearch} className="flex items-center relative w-full md:w-auto">
-               <input 
-                 type="text" 
-                 placeholder="Search book..." 
-                 className="pl-3 pr-8 py-1 border rounded-full text-gray-600 text-xs focus:outline-none focus:border-[#23A6F0] w-full"
-                 value={keyword}
-                 onChange={handleChange}
-               />
-               <button type="submit" className="absolute right-2 text-gray-400 hover:text-[#23856D]">
-                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-               </button>
-            </form>
+            {/* --- SEARCH ICON / INPUT TOGGLE --- */}
+            {showSearchInput ? (
+              <form onSubmit={handleSearch} className="relative">
+                 <input 
+                   ref={inputRef}
+                   type="text" 
+                   placeholder="Search..." 
+                   className="pl-2 pr-8 py-1 border-b border-[#23A6F0] text-gray-600 text-xs focus:outline-none w-40 transition-all"
+                   value={keyword}
+                   onChange={handleChange}
+                   onBlur={() => {
+                     // Kalau kosong, balik jadi icon. Kalau ada isi, biarin tetep input
+                     if(!keyword) setShowSearchInput(false)
+                   }}
+                 />
+                 <button type="submit" className="absolute right-0 top-1 text-[#23A6F0]">
+                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                 </button>
+              </form>
+            ) : (
+              <svg 
+                onClick={() => setShowSearchInput(true)}
+                className="w-4 h-4 cursor-pointer text-[#23A6F0] hover:scale-110 transition" 
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            )}
 
-            <div className="flex items-center gap-4 ml-2">
+            <div className="flex items-center gap-4">
               <div className="flex items-center gap-1 cursor-pointer hover:text-[#23856D]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                   {cartCount > 0 && <span className="text-xs">{cartCount}</span>}
@@ -160,7 +186,9 @@ const HeroSection = ({ books }) => {
     <section className="bg-white py-8 px-6 relative overflow-hidden group">
       <div className="max-w-[1128px] mx-auto flex flex-col md:flex-row items-start gap-8">
         
+        {/* --- KOLOM KIRI: GAMBAR & BREADCRUMB --- */}
         <div className="w-full md:w-5/12 flex flex-col items-center">
+            
             <div className="relative w-64 md:w-80"> 
                 <div className="flex items-center gap-3 mb-10">
                    <a href="#" className="text-[#252B42] font-bold text-sm hover:underline">Home</a>
@@ -191,6 +219,7 @@ const HeroSection = ({ books }) => {
             </div>
         </div>
 
+        {/* --- KOLOM KANAN: DETAIL TEKS --- */}
         <div className="w-full md:w-7/12 text-left space-y-6 pt-16"> 
           <div className="flex flex-wrap gap-3 text-sm font-bold tracking-wide text-[#737373]">
              <span className="bg-[#F6F6F6] px-4 py-2 rounded-full text-[#737373]">
@@ -426,9 +455,10 @@ function App() {
       <section className="max-w-[1128px] mx-auto py-16 px-6 border-t border-gray-100">
          <div className="text-left mb-10">
             <p className="text-[#737373] text-sm font-medium mb-2">
+                {isSearching ? 'Search Result' : 'Featured Products'}
             </p>
             <h2 className="text-[#252B42] font-sans font-semibold text-[32px] leading-[40px] tracking-[-0.04em] mb-2">
-                
+               
             </h2>
          </div>
 
